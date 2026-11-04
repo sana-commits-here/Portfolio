@@ -13,7 +13,7 @@ export const PROFILE = {
     "I architect agentic AI workflows, production RAG pipelines, and edge computer vision systems to solve complex operational challenges.",
   // Replace with your photo, avatar or illustration:
   portrait:
-    "images/WhatsApp_Image_2026-11-04_at_1.46.23_AM-removebg-preview.png",
+    "https://base44.app/api/apps/6ae9ed2296e194a8d073172d/files/mp/public/6ae9ed2296e194a8d073172d/9d44c3b72_portrait-maroon.png",
   // Structure: "I specialize in [skill] and help businesses solve [problem]..."
   aboutText:
     "I specialize in Agentic AI and intelligent digital products, and help businesses solve complex problems through thoughtful, effective digital solutions. Let's build something incredible together!",
