@@ -2,23 +2,30 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useScroll, useMotionValueEvent, useReducedMotion } from "framer-motion";
 import FadeIn from "@/components/FadeIn";
 import ProjectCard, { STACK_GAP } from "@/components/sections/ProjectCard";
+import MobileProjectCard from "@/components/sections/MobileProjectCard";
 import DeckDots from "@/components/sections/DeckDots";
 import { PROJECTS, WORK_CTA } from "@/content/portfolio";
 
 const CARDS = [...PROJECTS, WORK_CTA];
+const MOBILE_QUERY = "(max-width: 767px)";
+// Scroll distance per card on desktop. 100vh per card felt sluggish.
+const VH_PER_CARD = 70;
 
 export default function ProjectsSection() {
   const containerRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const reducedMotion = useReducedMotion();
 
-  // Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
+  // Mobile detection — read synchronously on first render so phones never
+  // flash the tall desktop scroll-deck before switching layouts.
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.matchMedia(MOBILE_QUERY).matches
+  );
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const mql = window.matchMedia(MOBILE_QUERY);
+    const onChange = (e) => setIsMobile(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
   }, []);
 
   // Framer Motion's native scroll tracker tied directly to this section
@@ -71,11 +78,9 @@ export default function ProjectsSection() {
             </div>
           </FadeIn>
 
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-10">
             {CARDS.map((project) => (
-              <FadeIn key={project.slug || "work-cta"} y={30} duration={0.6}>
-                <ProjectCard project={project} flow />
-              </FadeIn>
+              <MobileProjectCard key={project.slug || "work-cta"} project={project} />
             ))}
           </div>
         </div>
@@ -89,9 +94,9 @@ export default function ProjectsSection() {
       id="work"
       ref={containerRef}
       className="relative z-10 bg-[#0C0C0C] border-t border-[#D7E2EA]/10"
-      style={{ height: `${CARDS.length * 100}vh` }}
+      style={{ height: `calc(${CARDS.length * VH_PER_CARD}vh + 30vh)` }}
     >
-      <div className="sticky top-0 h-screen w-full flex flex-col justify-between py-8 px-6 sm:px-12 md:px-16 lg:px-20 overflow-hidden">
+      <div className="sticky top-0 h-screen w-full flex flex-col justify-between pt-[4.5rem] pb-6 px-6 sm:px-12 md:px-16 lg:px-20 overflow-hidden">
         <div className="max-w-6xl mx-auto w-full flex flex-col h-full justify-between relative">
           {/* Section Header */}
           <div className="pt-2 pb-4">

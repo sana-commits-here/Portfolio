@@ -1,4 +1,5 @@
 import React from "react";
+import SiteHeader from "@/components/SiteHeader";
 import HeroSection from "@/components/sections/HeroSection";
 import SkillsSection from "@/components/sections/SkillsSection";
 import MarqueeSection from "@/components/sections/MarqueeSection";
@@ -16,6 +17,7 @@ export default function Home() {
       className="bg-[#0C0C0C] min-h-screen"
       style={{ fontFamily: "'Kanit', sans-serif" }}
     >
+      <SiteHeader />
       <HeroSection />
       <SkillsSection />
       <MarqueeSection />

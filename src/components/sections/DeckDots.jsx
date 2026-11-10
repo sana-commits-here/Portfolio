@@ -10,7 +10,7 @@ export default function DeckDots({ total, activeIndex, onSelect }) {
             key={i}
             type="button"
             onClick={() => onSelect(i)}
-            aria-label={`Перейти к карточке ${i + 1}`}
+            aria-label={`Go to card ${i + 1}`}
             aria-current={active}
             className={`rounded-full border transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D7E2EA] ${
               active

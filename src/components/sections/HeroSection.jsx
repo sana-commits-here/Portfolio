@@ -22,14 +22,20 @@ export default function HeroSection() {
   const parallaxScale = useSpring(scaleRaw, { stiffness: 80, damping: 18 });
 
   return (
-    <section ref={heroRef} className="relative h-screen flex flex-col" style={{ overflowX: "clip" }}>
+    <section
+      id="top"
+      ref={heroRef}
+      className="relative h-[100svh] min-h-[560px] flex flex-col"
+      style={{ overflowX: "clip" }}
+    >
+      {/* Desktop/tablet inline nav — phones use the menu in SiteHeader */}
       <FadeIn delay={0} y={-20}>
-        <nav className="flex justify-between px-6 md:px-10 pt-6 md:pt-8">
+        <nav className="hidden md:flex justify-between px-10 pt-8">
           {NAV_LINKS.map((link) => (
             <a
               key={link.label}
               href={link.href}
-              className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-opacity duration-200"
+              className="text-[#D7E2EA] font-medium uppercase tracking-wider text-base lg:text-[1.4rem] hover:opacity-70 transition-opacity duration-200"
             >
               {link.label}
             </a>
@@ -39,7 +45,7 @@ export default function HeroSection() {
 
       <div className="overflow-hidden">
         <FadeIn delay={0.15} y={40}>
-          <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap w-full text-center text-[14vw] sm:text-[15vw] md:text-[16vw] lg:text-[17.5vw] mt-6 sm:mt-4 md:-mt-5">
+          <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap w-full text-center text-[14vw] sm:text-[15vw] md:text-[16vw] lg:text-[17.5vw] mt-20 sm:mt-20 md:-mt-5">
             Hi, i&apos;m {PROFILE.name}
           </h1>
         </FadeIn>
@@ -47,7 +53,7 @@ export default function HeroSection() {
 
       {/* Portrait — sits directly under the heading, never overlapping it.
           Swap PROFILE.portrait for a photo, avatar or illustration. */}
-      <div className="flex-1 min-h-0 flex justify-center items-start relative z-10 -mt-[2vh]">
+      <div className="flex-1 min-h-0 flex justify-center items-center md:items-start relative z-10 mt-4 md:-mt-[2vh]">
         <motion.div
           className="flex justify-center"
           style={{
@@ -62,32 +68,33 @@ export default function HeroSection() {
             <img
               src={PROFILE.portrait}
               alt={`${PROFILE.name} — ${PROFILE.role}`}
-              className="w-auto max-w-[92vw] object-contain"
-              style={{ height: "clamp(260px, 56vh, 720px)" }}
+              className="w-auto max-w-[92vw] object-contain h-[clamp(200px,42svh,440px)] md:h-[clamp(260px,56vh,720px)]"
             />
           </FadeIn>
         </motion.div>
       </div>
 
-      <div className="flex justify-between items-end px-6 md:px-10 pb-7 sm:pb-8 md:pb-10 relative z-20">
+      {/* Phones: one stacked column (role, tagline, full-width buttons).
+          md+: tagline bottom-left, buttons bottom-right. */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-5 px-5 md:px-10 pb-6 sm:pb-8 md:pb-10 relative z-20">
         <FadeIn delay={0.35} y={20}>
-          <div className="max-w-[160px] sm:max-w-[240px] md:max-w-[300px]">
+          <div className="max-w-[520px] md:max-w-[340px] lg:max-w-[400px]">
             <p
               className="text-[#D7E2EA] font-medium uppercase tracking-widest mb-2"
-              style={{ fontSize: "clamp(0.8rem, 1.6vw, 1.6rem)" }}
+              style={{ fontSize: "clamp(0.95rem, 1.6vw, 1.6rem)" }}
             >
               {PROFILE.role}
             </p>
             <p
-              className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug"
-              style={{ fontSize: "clamp(0.7rem, 1.2vw, 1.2rem)" }}
+              className="text-[#D7E2EA]/80 font-light leading-snug"
+              style={{ fontSize: "clamp(0.9rem, 1.2vw, 1.15rem)" }}
             >
               {PROFILE.tagline}
             </p>
           </div>
         </FadeIn>
         <FadeIn delay={0.5} y={20} className="relative z-20">
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 md:flex md:flex-row md:items-center gap-3 md:gap-4 [&>a]:px-3 md:[&>a]:px-10">
             <LiveProjectButton href="#work">View My Work</LiveProjectButton>
             <ContactButton href="#contact">Let&apos;s Work Together</ContactButton>
           </div>

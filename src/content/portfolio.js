@@ -5,6 +5,10 @@
 // testimonials and social links — no other code changes needed.
 // ============================================================
 
+// Files in /public are served from the site root. Prefixing with BASE_URL
+// keeps paths working on nested routes (/work/...) and any deploy base path.
+const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
+
 export const PROFILE = {
   name: "Sana",
   role: "AI/ML Engineer",
@@ -12,8 +16,7 @@ export const PROFILE = {
   tagline:
     "I architect agentic AI workflows, production RAG pipelines, and edge computer vision systems to solve complex operational challenges.",
   // Replace with your photo, avatar or illustration:
-  portrait:
-    "https://base44.app/api/apps/6ae9ed2296e194a8d073172d/files/mp/public/6ae9ed2296e194a8d073172d/9d44c3b72_portrait-maroon.png",
+  portrait: asset("images/portrait.webp"),
   // Structure: "I specialize in [skill] and help businesses solve [problem]..."
   aboutText:
     "I specialize in Agentic AI and intelligent digital products, and help businesses solve complex problems through thoughtful, effective digital solutions. Let's build something incredible together!",
