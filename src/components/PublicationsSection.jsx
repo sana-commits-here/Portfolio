@@ -1,206 +1,170 @@
-import React, { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, Plus } from "lucide-react";
+import React, { useRef } from "react";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
 import { PUBLICATIONS } from "@/content/portfolio";
 
 /*
- * Dark editorial list. Each row: number · title + venue · year · toggle.
- *  - Rules draw in and titles slide up out of a mask as rows enter.
- *  - Desktop: hovering a row opens it (with a short intent delay so rows
- *    don't flicker while the pointer travels), others dim, a soft glow
- *    follows the cursor.
- *  - Phone: tap a row to open/close it.
+ * Featured + compact. The newest paper gets a large block with an image that
+ * unmasks and drifts on scroll; the rest sit underneath as compact rows.
  */
 
 const EASE = [0.22, 1, 0.36, 1];
 const BRAND = "linear-gradient(90deg, #B600A8, #7621B0, #BE4C00)";
-const pad = (n) => String(n + 1).padStart(2, "0");
 const hasLink = (p) => p.link && p.link !== "https://doi.org/";
 
-function Row({ pub, index, open, dimmed, onHover, onToggle, reduced }) {
+function Featured({ pub, reduced }) {
   const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const imgY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
 
-  const onMove = (e) => {
-    const r = ref.current.getBoundingClientRect();
-    ref.current.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    ref.current.style.setProperty("--my", `${e.clientY - r.top}px`);
-  };
+  const fade = (delay = 0) => ({
+    initial: reduced ? false : { opacity: 0, y: 24 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.4 },
+    transition: { duration: 0.7, ease: EASE, delay },
+  });
+
+  const Wrapper = hasLink(pub) ? "a" : "div";
+  const wrapperProps = hasLink(pub)
+    ? { href: pub.link, target: "_blank", rel: "noopener noreferrer" }
+    : {};
+
+  return (
+    <Wrapper
+      {...wrapperProps}
+      className="group relative grid md:grid-cols-12 gap-0 rounded-[28px] sm:rounded-[36px] border border-[#D7E2EA]/15 bg-white/[0.02] overflow-hidden"
+    >
+      {/* gradient top edge */}
+      <div className="absolute top-0 left-8 right-8 h-px z-10" style={{ background: BRAND }} />
+
+      {/* Image: unmask from the left + parallax drift + zoom on hover */}
+      <motion.div
+        ref={ref}
+        className="relative md:col-span-5 aspect-[16/10] md:aspect-auto md:min-h-[440px] overflow-hidden"
+        initial={reduced ? false : { clipPath: "inset(0 100% 0 0)" }}
+        whileInView={{ clipPath: "inset(0 0% 0 0)" }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 1.1, ease: EASE }}
+      >
+        <motion.img
+          src={pub.image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          style={reduced ? undefined : { y: imgY }}
+          className="absolute inset-0 w-full h-full object-cover scale-[1.18] transition-transform duration-700 ease-out group-hover:scale-[1.26]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-transparent via-transparent to-[#0C0C0C]/70" />
+        <span className="absolute top-4 left-4 rounded-full bg-[#0C0C0C]/70 backdrop-blur px-3 py-1 text-[0.65rem] uppercase tracking-widest text-[#D7E2EA]">
+          Featured · {pub.year}
+        </span>
+      </motion.div>
+
+      {/* Content */}
+      <div className="md:col-span-7 p-6 sm:p-10 flex flex-col">
+        <motion.span {...fade(0.1)} className="text-[0.7rem] uppercase tracking-widest text-[#D7E2EA]/55">
+          {pub.badge}
+        </motion.span>
+        <motion.h3
+          {...fade(0.18)}
+          className="mt-3 text-[#D7E2EA] font-semibold leading-[1.08] tracking-tight"
+          style={{ fontSize: "clamp(1.5rem, 3.2vw, 2.6rem)" }}
+        >
+          {pub.title}
+        </motion.h3>
+        <motion.p {...fade(0.26)} className="mt-3 text-sm text-[#D7E2EA]/55 leading-relaxed">
+          {pub.conference}
+        </motion.p>
+        <motion.p {...fade(0.32)} className="mt-6 text-[#D7E2EA]/80 text-sm sm:text-base leading-relaxed font-light">
+          {pub.abstract}
+        </motion.p>
+
+        <motion.div {...fade(0.4)} className="flex flex-wrap gap-2 mt-6">
+          {pub.topics.map((t) => (
+            <span
+              key={t}
+              className="px-3 py-1 text-xs font-mono rounded-full bg-white/[0.04] text-[#D7E2EA]/70 border border-[#D7E2EA]/10"
+            >
+              {t}
+            </span>
+          ))}
+        </motion.div>
+
+        <motion.div
+          {...fade(0.48)}
+          className="mt-auto pt-8 flex flex-wrap items-center justify-between gap-4 text-xs uppercase tracking-widest"
+        >
+          <span className="text-[#D7E2EA]/50">{pub.role}</span>
+          {hasLink(pub) ? (
+            <span className="inline-flex items-center gap-2 text-[#D7E2EA]">
+              Read paper
+              <span className="w-9 h-9 rounded-full flex items-center justify-center text-white transition-transform duration-300 group-hover:rotate-45" style={{ background: BRAND }}>
+                <ArrowUpRight className="w-4 h-4" />
+              </span>
+            </span>
+          ) : (
+            <span className="text-[#D7E2EA]/35">Link coming soon</span>
+          )}
+        </motion.div>
+      </div>
+    </Wrapper>
+  );
+}
+
+function CompactRow({ pub, index, reduced }) {
+  const Tag = hasLink(pub) ? "a" : "div";
+  const linkProps = hasLink(pub) ? { href: pub.link, target: "_blank", rel: "noopener noreferrer" } : {};
 
   return (
     <motion.li
-      ref={ref}
-      onMouseMove={onMove}
-      onMouseEnter={() => onHover(index)}
-      animate={{ opacity: dimmed ? 0.35 : 1 }}
-      transition={{ duration: 0.35 }}
-      className="group relative"
+      initial={reduced ? false : { opacity: 0, x: -24 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, amount: 0.6 }}
+      transition={{ duration: 0.6, ease: EASE, delay: index * 0.1 }}
+      className="relative"
     >
-      {/* rule that draws in from the left; turns brand-coloured when open */}
-      <motion.div
-        aria-hidden="true"
-        className="absolute top-0 left-0 right-0 h-px bg-[#D7E2EA]/15 origin-left"
-        initial={reduced ? false : { scaleX: 0 }}
-        whileInView={{ scaleX: 1 }}
-        viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: 1, ease: EASE, delay: index * 0.12 }}
-      />
-      <motion.div
-        aria-hidden="true"
-        className="absolute top-0 left-0 right-0 h-px origin-left"
-        style={{ background: BRAND }}
-        animate={{ scaleX: open ? 1 : 0 }}
-        transition={{ duration: 0.6, ease: EASE }}
-      />
-
-      {/* cursor glow (desktop hover only) */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300"
-        style={{
-          background:
-            "radial-gradient(500px circle at var(--mx, 50%) var(--my, 50%), rgba(182,0,168,0.10), transparent 60%)",
-        }}
-      />
-
-      <button
-        type="button"
-        onClick={() => onToggle(index)}
-        aria-expanded={open}
-        aria-controls={`pub-panel-${index}`}
-        className="relative w-full text-left grid grid-cols-[auto_1fr_auto] md:grid-cols-[4rem_1fr_6rem_auto] items-start gap-x-4 md:gap-x-6 py-6 md:py-9"
+      <Tag
+        {...linkProps}
+        className="group relative grid grid-cols-[3.5rem_1fr_auto] sm:grid-cols-[5rem_1fr_auto] items-center gap-4 sm:gap-6 py-6 sm:py-7 border-b border-[#D7E2EA]/10"
       >
-        <span className="font-mono text-xs md:text-sm text-[#D7E2EA]/40 pt-1.5 md:pt-3">{pad(index)}</span>
-
+        {/* hover underline sweep */}
+        <span
+          aria-hidden="true"
+          className="absolute left-0 bottom-[-1px] h-px w-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"
+          style={{ background: BRAND }}
+        />
+        <span className="font-mono text-sm text-[#D7E2EA]/50">{pub.year}</span>
         <span className="min-w-0">
-          {/* title slides up out of a mask */}
-          <span className="block overflow-hidden">
-            <motion.span
-              className={`block font-semibold leading-[1.1] tracking-tight transition-colors duration-300 ${
-                open ? "text-[#D7E2EA]" : "text-[#D7E2EA]/85"
-              }`}
-              style={{ fontSize: "clamp(1.25rem, 3vw, 2.4rem)" }}
-              initial={reduced ? false : { y: "105%" }}
-              whileInView={{ y: 0 }}
-              viewport={{ once: true, amount: 0.8 }}
-              transition={{ duration: 0.8, ease: EASE, delay: 0.1 + index * 0.12 }}
-            >
-              {pub.title}
-            </motion.span>
+          <span className="block text-[#D7E2EA] font-medium text-base sm:text-xl leading-snug group-hover:translate-x-1 transition-transform duration-300">
+            {pub.title}
           </span>
-          <motion.span
-            className="block mt-2 text-xs md:text-sm text-[#D7E2EA]/50 line-clamp-2 md:line-clamp-1"
-            initial={reduced ? false : { opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.35 + index * 0.12 }}
-          >
-            <span className="md:hidden">{pub.year} · </span>
-            {pub.conference}
-          </motion.span>
+          <span className="block mt-1 text-xs sm:text-sm text-[#D7E2EA]/45 truncate">
+            {pub.badge} · {pub.conference}
+          </span>
         </span>
-
-        <span className="hidden md:block font-mono text-sm text-[#D7E2EA]/60 pt-3 text-right">{pub.year}</span>
-
-        <motion.span
-          className={`mt-0.5 md:mt-1.5 w-9 h-9 md:w-11 md:h-11 rounded-full border flex items-center justify-center transition-colors duration-300 ${
-            open
-              ? "border-transparent text-white"
-              : "border-[#D7E2EA]/25 text-[#D7E2EA]/70 md:group-hover:border-[#D7E2EA]/60"
+        <span
+          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-all duration-300 ${
+            hasLink(pub)
+              ? "border-[#D7E2EA]/30 text-[#D7E2EA] group-hover:border-transparent group-hover:rotate-45"
+              : "border-[#D7E2EA]/10 text-[#D7E2EA]/25"
           }`}
-          style={open ? { background: BRAND } : undefined}
-          animate={{ rotate: open ? 45 : 0 }}
-          transition={{ duration: 0.4, ease: EASE }}
+          title={hasLink(pub) ? "Read paper" : "Link coming soon"}
         >
-          <Plus className="w-4 h-4 md:w-5 md:h-5" />
-        </motion.span>
-      </button>
-
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            id={`pub-panel-${index}`}
-            key="panel"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: reduced ? 0 : 0.5, ease: EASE }}
-            className="relative overflow-hidden"
-          >
-            <motion.div
-              initial={reduced ? false : { y: 16 }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.5, ease: EASE, delay: 0.05 }}
-              className="pb-8 md:pb-10 md:grid md:grid-cols-[4rem_1fr_6rem_auto] md:gap-x-6"
-            >
-              <span className="hidden md:block" />
-              <div className="md:pr-8">
-                <p className="text-[#D7E2EA]/75 text-sm md:text-base leading-relaxed font-light max-w-3xl">
-                  {pub.abstract}
-                </p>
-
-                <div className="flex flex-wrap gap-2 mt-6">
-                  {pub.topics.map((t, i) => (
-                    <motion.span
-                      key={t}
-                      initial={reduced ? false : { opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.35, ease: EASE, delay: 0.15 + i * 0.04 }}
-                      className="px-3 py-1 text-xs font-mono rounded-full bg-white/[0.04] text-[#D7E2EA]/70 border border-[#D7E2EA]/10"
-                    >
-                      {t}
-                    </motion.span>
-                  ))}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mt-7 text-xs">
-                  <span className="uppercase tracking-widest text-[#D7E2EA]/45">
-                    {pub.badge} · <span className="text-[#D7E2EA]/75">{pub.role}</span>
-                  </span>
-                  {hasLink(pub) ? (
-                    <a
-                      href={pub.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 uppercase tracking-widest text-[#D7E2EA] border-b border-[#D7E2EA]/40 pb-0.5 hover:border-[#D7E2EA] transition-colors"
-                    >
-                      Read publication
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </a>
-                  ) : (
-                    <span className="uppercase tracking-widest text-[#D7E2EA]/35">Link coming soon</span>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <ArrowUpRight className="w-4 h-4" />
+        </span>
+      </Tag>
     </motion.li>
   );
 }
 
 export default function PublicationsSection() {
   const reduced = useReducedMotion();
-  const [open, setOpen] = useState(0);
-  const [hovering, setHovering] = useState(false);
-  const timer = useRef(null);
-  useEffect(() => () => clearTimeout(timer.current), []);
-
   if (!PUBLICATIONS?.length) return null;
 
-  const canHover = () => window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-
-  // Hover intent: open after a short pause so passing over rows doesn't flicker.
-  const onHover = (i) => {
-    if (!canHover()) return;
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => setOpen(i), 160);
-  };
-  const onToggle = (i) => {
-    clearTimeout(timer.current);
-    setOpen((cur) => (cur === i ? null : i));
-  };
+  // Newest paper is featured; the rest are listed underneath.
+  const sorted = [...PUBLICATIONS].sort((a, b) => Number(b.year) - Number(a.year));
+  const [featured, ...others] = sorted;
 
   return (
     <section
@@ -228,27 +192,22 @@ export default function PublicationsSection() {
           </div>
         </FadeIn>
 
-        <ul
-          onMouseEnter={() => canHover() && setHovering(true)}
-          onMouseLeave={() => {
-            clearTimeout(timer.current);
-            setHovering(false);
-          }}
-          className="relative border-b border-[#D7E2EA]/15"
-        >
-          {PUBLICATIONS.map((pub, i) => (
-            <Row
-              key={i}
-              pub={pub}
-              index={i}
-              open={open === i}
-              dimmed={hovering && open !== null && open !== i}
-              onHover={onHover}
-              onToggle={onToggle}
-              reduced={reduced}
-            />
-          ))}
-        </ul>
+        <Featured pub={featured} reduced={reduced} />
+
+        {others.length > 0 && (
+          <div className="mt-12 sm:mt-16">
+            <FadeIn y={16}>
+              <span className="text-[#D7E2EA]/45 uppercase tracking-widest text-xs font-mono">
+                More publications
+              </span>
+            </FadeIn>
+            <ul className="mt-2">
+              {others.map((pub, i) => (
+                <CompactRow key={pub.title} pub={pub} index={i} reduced={reduced} />
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </section>
   );

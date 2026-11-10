@@ -83,6 +83,12 @@ export const EXPERIENCES = [
     location: "Hyderabad, India",
     period: "Sep 2025 – Present",
     type: "Full-time",
+    // Headline numbers shown big at the top of this role (taken from the highlights).
+    stats: [
+      { value: "50+", label: "AI/ML pipelines shipped" },
+      { value: "30+", label: "FPS real-time vision" },
+      { value: "50+", label: "Project lifecycles mentored" },
+    ],
     description:
       "Leading real-time ML inference architecture, edge computer vision deployments, and engineering standardization across client projects.",
     highlights: [
@@ -99,6 +105,11 @@ export const EXPERIENCES = [
     location: "Helsinki, Finland (Remote)",
     period: "May 2023 – Oct 2023",
     type: "Internship",
+    stats: [
+      { value: "10+", label: "Workflows automated" },
+      { value: "25%", label: "Faster data prep" },
+      { value: "4+", label: "Research publications" },
+    ],
     description:
       "Automated ML/NLP data preparation pipelines and collaborated with cross-functional product teams on research publication delivery.",
     highlights: [
@@ -308,6 +319,8 @@ export const PUBLICATIONS = [
     year: "2026",
     role: "Co-Author & Lead AI/Robotics Researcher",
     badge: "Peer-Reviewed Conference",
+    // Shown when this paper is the featured (newest) one.
+    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&q=80",
     abstract:
       "Investigates edge-quantized vision pipelines and deterministic closed-loop PWM control algorithms for 4WD mobile platforms using YOLOv8n and Tencent NCNN FP16 on Raspberry Pi hardware.",
     topics: ["Robotics", "Edge AI", "NCNN Quantization", "YOLOv8", "Computer Vision"],
@@ -319,6 +332,7 @@ export const PUBLICATIONS = [
     year: "2024",
     role: "Lead Author",
     badge: "Published Paper",
+    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1200&q=80",
     abstract:
       "Presents an conversational NLP architecture designed for preliminary clinical inquiry triage, patient intent parsing, and contextual health guidance.",
     topics: ["Natural Language Processing", "Conversational AI", "Healthcare Tech"],
