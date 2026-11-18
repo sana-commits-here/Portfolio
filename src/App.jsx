@@ -1,68 +1,57 @@
-import React, { useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Toaster } from "@/components/ui/toaster";
-import Home from './pages/Home';
-import CaseStudy from './pages/CaseStudy';
+import { useState } from 'react';
+import { LazyMotion, MotionConfig } from 'framer-motion';
 
-const EASE = [0.22, 1, 0.36, 1];
-
-// Cross-fade between pages, with a brand-gradient bar sweeping across on enter.
-function Page({ children }) {
-  const reduced = useReducedMotion();
-  if (reduced) return children;
-  return (
-    <motion.div
-      // Opacity only: a transform here would turn this wrapper into the
-      // containing block for the fixed header and the sticky project deck.
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { duration: 0.45, ease: EASE } }}
-      exit={{ opacity: 0, transition: { duration: 0.25, ease: 'easeIn' } }}
-    >
-      <motion.div
-        aria-hidden="true"
-        className="fixed top-0 left-0 right-0 h-[3px] z-[80] origin-left pointer-events-none"
-        style={{ background: 'linear-gradient(90deg, #B600A8, #7621B0, #BE4C00)' }}
-        initial={{ scaleX: 0, opacity: 1 }}
-        animate={{ scaleX: 1, opacity: 0, transition: { duration: 0.8, ease: EASE } }}
-      />
-      {children}
-    </motion.div>
-  );
-}
-
-function AnimatedRoutes() {
-  const location = useLocation();
-  const latest = useRef(location);
-  latest.current = location;
-
-  // Once the old page has faded out: jump to the hash target (e.g. /#work)
-  // or to the top, so the new page never appears mid-scroll.
-  const onExitComplete = () => {
-    const { hash } = latest.current;
-    window.setTimeout(() => {
-      const el = hash && document.getElementById(decodeURIComponent(hash.slice(1)));
-      if (el) el.scrollIntoView({ behavior: 'instant' });
-      else window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    }, 30);
-  };
-
-  return (
-    <AnimatePresence mode="wait" initial={false} onExitComplete={onExitComplete}>
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Page><Home /></Page>} />
-        <Route path="/work/:slug" element={<Page><CaseStudy /></Page>} />
-        <Route path="*" element={<Page><Home /></Page>} />
-      </Routes>
-    </AnimatePresence>
-  );
-}
+const loadFeatures = () => import('./lib/motion-features.js').then((r) => r.default);
+import { useHashLinks, useLiveRegions, useReduced, useScrollProgress } from './lib/util.js';
+import Boot from './components/system/Boot.jsx';
+import Cursor from './components/system/Cursor.jsx';
+import Interlude from './components/system/Interlude.jsx';
+import { Dock, Spine } from './components/system/Navigation.jsx';
+import Hero from './components/sections/Hero.jsx';
+import Profile from './components/sections/Profile.jsx';
+import Trajectory from './components/sections/Trajectory.jsx';
+import Experiments from './components/sections/Experiments.jsx';
+import Ecosystem from './components/sections/Ecosystem.jsx';
+import Laboratory from './components/sections/Laboratory.jsx';
+import Response from './components/sections/Response.jsx';
 
 export default function App() {
+  // The logo curtain plays on every visit and every refresh.
+  const [curtain, setCurtain] = useState(true);
+  const [revealed, setRevealed] = useState(false);
+  const reduced = useReduced();
+  useScrollProgress();
+  useLiveRegions();
+  useHashLinks();
+
   return (
-    <Router>
-      <AnimatedRoutes />
-      <Toaster />
-    </Router>
+    <LazyMotion features={loadFeatures} strict>
+    <MotionConfig reducedMotion="user">
+      <a href="#main" className="skip">Skip to content</a>
+      <div className="backdrop" aria-hidden="true">
+        <div className="bd-grid" />
+        <div className="bd-grain" />
+      </div>
+      {curtain && <Boot reduced={reduced} onReveal={() => setRevealed(true)} onDone={() => setCurtain(false)} />}
+      <Cursor />
+      <Spine />
+      <Dock />
+      <main id="main">
+        <Hero ready={revealed} />
+        <Interlude from="lines" to="cloud" op="encode(identity)" result="embedding" />
+        <Profile />
+        <Interlude from="cloud" to="axis" op="sort(embedding, by=time)" result="sequence" />
+        <Trajectory />
+        <Interlude from="axis" to="frames" op="expand(sequence)" result="experiments" />
+        <Experiments />
+        <Interlude from="frames" to="graph" op="decompose(experiments)" result="skill graph" />
+        <Ecosystem />
+        <Interlude from="graph" to="plot" op="fit(graph)" result="hypotheses" toTheme="lab" />
+        <Laboratory />
+        <Interlude from="plot" to="point" op="reduce(everything)" result="one channel" theme="lab" toTheme="ink" />
+        <Response />
+      </main>
+    </MotionConfig>
+    </LazyMotion>
   );
 }
